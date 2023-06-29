@@ -4,7 +4,8 @@
 # Primera Carga a Github
 # git init
 # git add .
-# git remote add origin https://github.com/nicoig/ChatPDF.git
+# git commit -m "primer commit"
+# git remote add origin https://github.com/nicoig/carozzi-chat.git
 # git push -u origin master
 
 # Actualizar Repo de Github
@@ -12,10 +13,14 @@
 # git commit -m "Se actualizan las variables de entorno"
 # git push origin master
 
+# Para eliminar un repo cargado
+# git remote remove origin
+
 # En Render
 # agregar en variables de entorno
 # PYTHON_VERSION = 3.9.12
 
+###############################################################
 
 
 from PyPDF2 import PdfReader
@@ -36,9 +41,6 @@ import asyncio
 
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY") 
-
-# vectors = getDocEmbeds("gpt4.pdf")
-# qa = ChatVectorDBChain.from_llm(ChatOpenAI(model_name="gpt-3.5-turbo"), vectors, return_source_documents=True)
 
 async def main():
 
@@ -63,7 +65,7 @@ async def main():
             await storeDocEmbeds(file, filename)
         
         with open(filename + ".pkl", "rb") as f:
-            global vectores
+            global vectors
             vectors = pickle.load(f)
             
         return vectors
@@ -72,10 +74,7 @@ async def main():
     async def conversational_chat(query):
         result = qa({"question": query, "chat_history": st.session_state['history']})
         st.session_state['history'].append((query, result["answer"]))
-        # print("Log: ")
-        # print(st.session_state['history'])
         return result["answer"]
-
 
     llm = ChatOpenAI(model_name="gpt-3.5-turbo")
     chain = load_qa_chain(llm, chain_type="stuff")
@@ -83,41 +82,47 @@ async def main():
     if 'history' not in st.session_state:
         st.session_state['history'] = []
 
+        
+    # Estableciendo la franja superior
+    st.image("img/franja_inferior_1.png")
 
-    #Creating the chatbot interface
+    # Agregar un espacio o salto
+    st.write("")
+
+    # Estableciendo el logo de Carozzi
+    st.image("img/logo_carozzi_chat.png", width=300)
+
+    # Estableciendo el título, subtítulo y descripción de Carozzi  
+    #st.title("Carozzi Chat")
 
 
-    st.title("\U000026A1 BitBoosters \U000026A1")
-    st.subheader("PDF Chat")
-    st.markdown("<p style='color: white; font-size: 15px;'>Carga tus documentos PDF, realiza consultas en lenguaje natural y obtén respuestas sobre tu documento.</p>", unsafe_allow_html=True)
+    # Título y descripción
+    st.subheader("Descubre lo último sobre Carozzi")
+    st.markdown("<p style='color: black; font-size: 15px;'>¡Hablemos de innovación, Transformación Digital, Medio Ambiente, Calidad, Salud y Nutrición, Marketing Responsable, Sostenibilidad y mucho más! Haz tus preguntas y descubre todo lo que Carozzi está haciendo para cambiar el mundo.</p>", unsafe_allow_html=True)
 
 
     if 'ready' not in st.session_state:
         st.session_state['ready'] = False
 
-    uploaded_file = st.file_uploader("Escoge un archivo", type="pdf")
+    # Aquí es donde cargamos el archivo PDF fijo en lugar del cargado por el usuario
+    file_path = "Carozzi.pdf"
+    with open(file_path, "rb") as f:
+        file = f.read()
 
-    if uploaded_file is not None:
+    with st.spinner("Procesando..."):
+        vectors = await getDocEmbeds(io.BytesIO(file), file_path)
+        qa = ConversationalRetrievalChain.from_llm(ChatOpenAI(model_name="gpt-3.5-turbo"), retriever=vectors.as_retriever(), return_source_documents=True)
 
-        with st.spinner("Procesando..."):
-        # Add your code here that needs to be executed
-            uploaded_file.seek(0)
-            file = uploaded_file.read()
-            # pdf = PyPDF2.PdfFileReader()
-            vectors = await getDocEmbeds(io.BytesIO(file), uploaded_file.name)
-            qa = ConversationalRetrievalChain.from_llm(ChatOpenAI(model_name="gpt-3.5-turbo"), retriever=vectors.as_retriever(), return_source_documents=True)
-
-        st.session_state['ready'] = True
+    st.session_state['ready'] = True
 
     st.divider()
 
     if st.session_state['ready']:
-
         if 'generated' not in st.session_state:
-            st.session_state['generated'] = ["¡Bienvenido! Ahora puede hacer cualquier pregunta sobre " + uploaded_file.name]
+            st.session_state['generated'] = ["¡Bienvenido! Realiza tu consulta"]
 
         if 'past' not in st.session_state:
-            st.session_state['past'] = ["Hey!"]
+            st.session_state['past'] = ["Hola!"]
 
         # container for chat history
         response_container = st.container()
@@ -127,8 +132,8 @@ async def main():
 
         with container:
             with st.form(key='my_form', clear_on_submit=True):
-                user_input = st.text_input("Ingrese su solicitud:", placeholder="Ej: Haga un resumen del documento PDF", key='input')
-                submit_button = st.form_submit_button(label='Send')
+                user_input = st.text_input("Ingrese su solicitud:", placeholder="Ej: ¿Que planes tiene Carozzi en Transformación Digital?", key='input')
+                submit_button = st.form_submit_button(label='Enviar')
 
             if submit_button and user_input:
                 output = await conversational_chat(user_input)
@@ -138,9 +143,10 @@ async def main():
         if st.session_state['generated']:
             with response_container:
                 for i in range(len(st.session_state['generated'])):
-                    message(st.session_state["past"][i], is_user=True, key=str(i) + '_user', avatar_style="thumbs")
-                    message(st.session_state["generated"][i], key=str(i), avatar_style="fun-emoji")
+                    message(st.session_state["past"][i], is_user=True, key=str(i) + '_user', avatar_style="big-smile")
+                    message(st.session_state["generated"][i], key=str(i), avatar_style="bottts")
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+    st.image("img/franja_inferior_1.png", use_column_width=True)
