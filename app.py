@@ -22,18 +22,6 @@
 
 ###############################################################
 
-import os
-
-# Establecer variables de entorno
-os.environ["STREAMLIT_SERVER_PORT"] = "8501"
-os.environ["STREAMLIT_THEME_BASE"] = "light"
-os.environ["STREAMLIT_THEME_PRIMARY_COLOR"] = "#4B8BBE"
-os.environ["STREAMLIT_THEME_BACKGROUND_COLOR"] = "#FFFFFF"
-os.environ["STREAMLIT_THEME_TEXT_COLOR"] = "#262730"
-os.environ["STREAMLIT_THEME_SECONDARY_BACKGROUND_COLOR"] = "#F0F0F5"
-os.environ["STREAMLIT_THEME_FONT"] = "sans serif"
-
-
 from PyPDF2 import PdfReader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -49,6 +37,8 @@ import streamlit as st
 from streamlit_chat import message
 import io
 import asyncio
+
+
 
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY") 
